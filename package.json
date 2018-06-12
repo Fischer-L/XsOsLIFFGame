@@ -6,7 +6,9 @@
   "private": true,
   "scripts": {
     "build": "node build/build.js",
-    "dev": "node build/build.js && node ./server/server.js"
+    "dev": "node build/build.js && node ./server/server.js",
+    "log": "heroku logs --tail",
+    "deploy": "./build/deploy.sh"
   },
   "dependencies": {
     "express": "^4.16.3",

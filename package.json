@@ -8,7 +8,7 @@
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "build": "node build/build.js",
-    "mysvr": "node ./server/server.js"
+    "mysvr": "node build/build.js && node ./server/server.js"
   },
   "dependencies": {
     "vue": "^2.5.2",
@@ -42,6 +42,7 @@
     "rimraf": "^2.6.0",
     "semver": "^5.3.0",
     "shelljs": "^0.7.6",
+    "socket.io": "^2.1.1",
     "uglifyjs-webpack-plugin": "^1.1.1",
     "url-loader": "^0.5.8",
     "vue-loader": "^13.3.0",

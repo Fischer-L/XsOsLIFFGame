@@ -1,6 +1,21 @@
-const app = require('express')();
-const http = require('http').Server(app);
+const path = require("path");
+const express = require('express');
+const http = require('http');
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+const app = express();
+const httpSvr = http.Server(app);
+const paths = {
+  publicDir: path.resolve('./dist'),
+  indexPage: path.resolve('./dist/index.html')
+};
+
+// Server static files
+app.use(express.static(paths.publicDir));
+
+app.get("/", (req, res) => {
+  res.sendFile(paths.indexPage);
+});
+
+httpSvr.listen(3000, function(){
+  console.log('listening on *:3000', __dirname);
 });

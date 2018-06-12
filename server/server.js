@@ -25,6 +25,8 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
-httpSvr.listen(3000, function(){
-  console.log('listening on *:3000', __dirname);
+const PORT = process.env.PORT || 3000;
+
+httpSvr.listen(PORT, function(){
+  console.log('listening on *:', PORT, __dirname);
 });

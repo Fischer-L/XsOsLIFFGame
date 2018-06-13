@@ -1,5 +1,6 @@
 <template>
   <div class="hello">
+    <button v-on:click="sendNow">Send now to the server by socket</button>
     <h1>{{ socketMsg }}</h1>
   </div>
 </template>
@@ -16,13 +17,18 @@ export default {
     }
   },
 
+  methods: {
+    sendNow() {
+      window._socket.emit('client_msg', { body: Date.now() });
+    }
+  },
+
   // Life cycle listeners
 
   mounted() {
     let socket = io(config.SOCKET_URL);
-    socket.on('news', data => {
-      this.socketMsg = JSON.stringify(data);
-      socket.emit('my_event', { my: 'data' });
+    socket.on('server_msg', data => {
+      if (data.body) this.socketMsg = data.body ;
     });
     window._socket = socket;
   }

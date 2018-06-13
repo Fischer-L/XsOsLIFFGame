@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 });
 
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
+  socket.emit('news', { hello: 'world from server WebSocket' });
   socket.on('my_event', function (data) {
     console.log(data);
   });

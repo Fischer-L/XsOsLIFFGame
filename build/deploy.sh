@@ -9,3 +9,4 @@ git push origin heroku -f
 git push heroku heroku:master -f
 heroku ps:scale web=1
 heroku open
+git checkout master

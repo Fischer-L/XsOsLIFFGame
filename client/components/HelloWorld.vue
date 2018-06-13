@@ -37,14 +37,14 @@ export default {
   mounted() {
     let socket = io(config.SOCKET_URL);
     socket.on('server_msg', data => {
-      // if (data.body) this.socketMsg = data.body ;
+      if (data.body) this.socketMsg = data.body;
     });
     window._socket = socket;
 
     if (liff && !config.LOCAL_DEV) {
       liff.init(async data => {
         this.liffData = JSON.stringify(data);
-        this.liffProfile = JSON.stringify(liff.getProfile());
+        this.liffProfile = JSON.stringify(await liff.getProfile());
       });
     } else {
       this.liffData = "No LIFF APIs";

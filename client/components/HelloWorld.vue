@@ -2,6 +2,8 @@
   <div class="hello">
     <button v-on:click="sendNow">Send now to the server by socket</button>
     <h1>{{ socketMsg }}</h1>
+    <h2>{{ liffData }}</h2>
+    <h2>{{ liffProfile }}</h2>
   </div>
 </template>
 
@@ -9,11 +11,15 @@
 import io from 'socket.io-client';
 import config from "../../config/client.env";
 
+
+
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      socketMsg: 'Waiting Websocket Message...'
+      socketMsg: 'Waiting Websocket Message...',
+      liffData: "",
+      liffProfile: ""
     }
   },
 
@@ -25,12 +31,24 @@ export default {
 
   // Life cycle listeners
 
+  beforeCreate() {
+  },
+
   mounted() {
     let socket = io(config.SOCKET_URL);
     socket.on('server_msg', data => {
-      if (data.body) this.socketMsg = data.body ;
+      // if (data.body) this.socketMsg = data.body ;
     });
     window._socket = socket;
+
+    if (liff && !config.LOCAL_DEV) {
+      liff.init(async data => {
+        this.liffData = JSON.stringify(data);
+        this.liffProfile = JSON.stringify(liff.getProfile());
+      });
+    } else {
+      this.liffData = "No LIFF APIs";
+    }
   }
 }
 </script>

@@ -1,9 +1,10 @@
 <template>
   <div class="hello">
-    <button v-on:click="sendNow">Send now to the server by socket</button>
-    <h1>{{ socketMsg }}</h1>
-    <h2>{{ liffData }}</h2>
-    <h2>{{ liffProfile }}</h2>
+    <button v-on:click="sendNow">Ping your partner</button>
+    <h3>You are {{ userName }}</h3>
+    <h3>Your partner is {{ partnerName }}</h3>
+    <p>You ping your partner at {{pingTime}}</p>
+    <p>You partner pong your at {{pongTime}}</p>
   </div>
 </template>
 
@@ -11,13 +12,17 @@
 import io from 'socket.io-client';
 import config from "../../config/client.env";
 
+const sokcet = io(config.SOCKET_URL);
+
 export default {
   name: 'HelloWorld',
+
   data () {
     return {
-      socketMsg: 'Waiting Websocket Message...',
-      liffData: "",
-      liffProfile: ""
+      userName: "n/a",
+      partnerName: "n/a",
+      pingTime: "--",
+      pongTime: "--"
     }
   },
 
@@ -33,7 +38,6 @@ export default {
   },
 
   mounted() {
-    let socket = io(config.SOCKET_URL);
     socket.on('server_msg', data => {
       if (data.body) this.socketMsg = data.body;
     });

@@ -2,7 +2,7 @@
 
 # XsOs LIFF Game Protocol
 ## Version
-0
+1
 
 ## Overview
 
@@ -97,7 +97,7 @@ SVR then forwards that message payload to another player client by the `server_m
     //   [ X,  ,  ,
     //      , O,  ,
     //      ,  , X]
-    state,
+    game,
   }
   ```
 

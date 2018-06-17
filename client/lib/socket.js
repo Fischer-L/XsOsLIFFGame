@@ -7,7 +7,7 @@ function isObj(obj) {
  * It only knows how to send/receive messages to/from the server.
  */
 const socket = {
-  VERSION: 0,
+  VERSION: 1,
 
   /**
    * Init the socket connection to the server.

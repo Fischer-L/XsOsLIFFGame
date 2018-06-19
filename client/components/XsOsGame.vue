@@ -3,8 +3,11 @@
     <section class="gameBoard__userBoard">
       <img class="userBoard__picture" v-if="opponent.userId" :src="opponent.imgURL" /><h3 class="userBoard__name">{{ opponent.name }}</h3>
     </section>
-    <section class="gameBoard__playBoard">
-      <div class="playBoard__cell" v-for="cell of cells" :data-empty="cell.empty" :style="cell.style" >
+    <section class="gameBoard__playBoard"
+             @click="onClickCell"
+             @touchend.stop.prevent="onClickCell"
+    >
+      <div class="playBoard__cell" v-for="cell of cells" :data-index="cell.index" :style="cell.style" >
         <img class="playBoard__cell-img" :src="cell.img" v-if="cell.img" />
       </div>
     </section>
@@ -25,9 +28,12 @@ export default {
   name: 'XsOsGame',
 
   computed: {
+    _state() {
+      return this.$store.state;
+    },
 
     cells() {
-      const game = this.$store.state.game;
+      const game = this._state.game;
       return game.map((move, i) => {
         const img = move === 1 ? circleImg : move === -1 ? crossImg : "";
         const style = {};
@@ -36,17 +42,17 @@ export default {
         return {
           img,
           style,
-          empty: !img
+          index: i
         };
       });
     },
 
     self() {
-      return this.formatUserInfo(this.$store.state.self);
+      return this.formatUserInfo(this._state.self);
     },
 
     opponent() {
-      return this.formatUserInfo(this.$store.state.opponent);
+      return this.formatUserInfo(this._state.opponent);
     },
   },
 
@@ -58,8 +64,19 @@ export default {
         imgURL,
         userId
       };
+    },
 
+    // Events
+    onClickCell(e) {
+      const game = this._state.game;
+      const index = parseInt(e.target.dataIndex);
+      if (game[index] !== 0 || this._state.currentPlayer !== "self") {
+        console.log("TMP> Cannot click this game cell!!!");
+        return;
+      }
+      // TBD: Dispatch to update $store.state.game
     }
+    // Events END
   },
 
   // Life cycle listeners
@@ -106,6 +123,7 @@ export default {
   display: grid;
   grid-template-rows: repeat(3, 1fr);
   grid-template-columns: repeat(3, 1fr);
+  cursor: pointer;
 }
 
 .playBoard__cell {

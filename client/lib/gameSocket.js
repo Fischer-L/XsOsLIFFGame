@@ -95,12 +95,13 @@ const gameSocket = {
   },
 
   send(payload) {
-    let payload = this.formatPayload(payload);
-    if (!payload) {
-      console.error("Send a socket message without payload.");
+    let formatted = this.formatPayload(payload);
+    if (!formatted) {
+      console.error("Send a socket message with invalid payload =", payload);
       return;
     }
-    this._conn.emit("client_msg", payload);
+    console.log("TMP> send client_msg =", formatted);
+    this._conn.emit("client_msg", formatted);
   },
 };
 

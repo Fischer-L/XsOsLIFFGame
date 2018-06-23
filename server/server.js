@@ -1,7 +1,8 @@
 const path = require("path");
 const express = require('express');
 const http = require('http');
-const webSocket = require("./webSocket");
+const socketIO = require('socket.io');
+const gameSocket = require("./gameSocket");
 
 const app = express();
 const httpSvr = http.Server(app);
@@ -17,9 +18,9 @@ app.get("/", (req, res) => {
   res.sendFile(paths.indexPage);
 });
 
-webSocket.init(httpSvr);
+gameSocket.init(httpSvr, socketIO);
 
 const PORT = process.env.PORT || 3000;
 httpSvr.listen(PORT, function(){
-  console.log('listening on *:', PORT, __dirname);
+  console.log('listening on port:', PORT, __dirname);
 });

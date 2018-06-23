@@ -1,5 +1,5 @@
 <template>
-    <section class="gameBoard__userBoard" :class="{ 'gameBoard__userBoard--self': isSelf }">
+    <section class="gameBoard__userBoard" :class="className">
       <template v-if="player.userId">
         <img class="userBoard__picture" :src="player.imgURL" /><h3 class="userBoard__name">{{ player.name }}</h3>
       </template><template v-else>
@@ -18,11 +18,25 @@ export default {
       required: true
     },
 
+    isPlaying: {
+      type: Boolean,
+      required: true
+    },
+
     player: {
       type: Object,
       required: true
     },
-  }
+  },
+
+  computed: {
+    className() {
+      return {
+        "gameBoard__userBoard--self": this.isSelf,
+        "gameBoard__userBoard--currentPlayer": this.isPlaying
+      };
+    }
+  },
 }
 </script>
 
@@ -53,5 +67,15 @@ export default {
 
 .userBoard__name--waiting {
   padding: 20px;
+}
+
+@keyframes highlight-to-play {
+  0% { background-color: #fff; }
+  50% { background-color: #fffbe8; }
+  100% { background-color: #fff; }
+}
+
+.gameBoard__userBoard--currentPlayer {
+  animation: highlight-to-play 1.8s infinite;
 }
 </style>

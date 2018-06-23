@@ -1,7 +1,7 @@
 <template>
   <div class="gameBoard xsos-full">
     
-    <UserBoard :isSelf="false" :player="opponent" />
+    <UserBoard :isSelf="false" :player="opponent" :isPlaying="_state.currentPlayer === 'opponent'" />
 
     <section class="gameBoard__playBoard"
              @click="onClickCell"
@@ -12,23 +12,43 @@
       </div>
     </section>
 
-    <UserBoard :isSelf="true" :player="self" />
+    <UserBoard :isSelf="true" :player="self" :isPlaying="_state.currentPlayer === 'self'" />
 
   </div>
 </template>
 
 <script>
-// TODO
-// import io from 'socket.io-client';
-// import gameRoom from "../lib/gameRoom";
-// import gameSocket from "../lib/gameSocket";
-// TODO END
+import io from 'socket.io-client';
+import gameRoom from "../lib/gameRoom";
+import gameSocket from "../lib/gameSocket";
 import { GAME_STATE } from "../lib/constants";
 import UserBoard from "./UserBoard.vue"
 import circleImg from "../assets/circle.svg";
 import crossImg from "../assets/cross.svg";
 import sallyImg from "../assets/sally.png";
 import brownImg from "../assets/brown.jpg";
+
+import config from "../../config/client.env";
+function fakeTmpLiff(liff) { // TMP
+  if (!config.LOCAL_DEV) return liff;
+
+  liff.init = onOK => {
+    onOK({
+      context: { utouId: "utouId_123456789" }
+    });
+  };
+
+  liff.getProfile = () => {
+    let userId = "" + Date.now();
+    return Promise.resolve({
+      userId,
+      displayName: userId,
+      pictureUrl: "",
+    });
+  };
+
+  return liff;
+}
 
 export default {
   name: 'XsOsGame',
@@ -58,29 +78,40 @@ export default {
     },
 
     self() {
-      return this.formatUserInfo(this._state.self);
+      return this._state.self;
     },
 
     opponent() {
-      return this.formatUserInfo(this._state.opponent);
+      return this._state.opponent;
     },
   },
 
   methods: {
-    formatUserInfo(user = {}) {
-      let { name, imgURL, userId } = user;
-      if (userId && !imgURL) {
-        // The user image may not exist so go for the dummy one if unavailable
-        imgURL = Date.now() % 2 ? sallyImg : brownImg;
-      }
-      return { name, imgURL, userId };
+
+    _initLIFF() {
+      return new Promise(resolve => {
+        console.log("TMP> _initLIFF");
+        liff = fakeTmpLiff(liff);
+        let onOK = async (data) => {
+          let profile = await liff.getProfile();
+          let context = {
+            utouId: data.context.utouId,
+            userId: profile.userId,
+            name: profile.displayName,
+            // The user image may not exist...
+            imgURL: profile.pictureUrl || (Date.now() % 2 ? sallyImg : brownImg),
+          };
+          resolve(context);
+        };
+        liff.init(onOK);
+      });
     },
 
     // Events
 
     onClickCell(e) {
-      const game = this._state.game;
-      const index = parseInt(e.target.dataIndex);
+      let game = this._state.game;
+      let index = parseInt(e.target.dataIndex);
       if (game[index] !== 0 || this._state.currentPlayer !== "self") {
         console.log("TMP> Cannot click this game cell!!!");
         return;
@@ -93,11 +124,12 @@ export default {
 
   // Life cycle listeners
 
-  beforeMount() {
-    // TODO
-    // let store = this.$store;
-    // gameSocket.init(io);
-    // gameRoom.init({ liff, store, gameSocket });
+  async beforeMount() {
+    let { utouId, name, imgURL, userId } = await this._initLIFF();
+    let player = { name, imgURL, userId };
+    let store = this.$store;
+    gameSocket.init(io);
+    gameRoom.init({ utouId, player, store, gameSocket });
   },
 
   mounted() {

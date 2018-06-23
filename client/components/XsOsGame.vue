@@ -1,8 +1,8 @@
 <template>
   <div class="gameBoard xsos-full">
-    <section class="gameBoard__userBoard">
-      <img class="userBoard__picture" v-if="opponent.userId" :src="opponent.imgURL" /><h3 class="userBoard__name">{{ opponent.name }}</h3>
-    </section>
+    
+    <UserBoard :isSelf="false" :player="opponent" />
+
     <section class="gameBoard__playBoard"
              @click="onClickCell"
              @touchend.stop.prevent="onClickCell"
@@ -11,14 +11,20 @@
         <img class="playBoard__cell-img" :src="cell.img" v-if="cell.img" />
       </div>
     </section>
-    <section class="gameBoard__userBoard gameBoard__userBoard--self">
-      <img class="userBoard__picture" v-if="self.userId" :src="self.imgURL" /><h3 class="userBoard__name">{{ self.name }}</h3>
-    </section>
+
+    <UserBoard :isSelf="true" :player="self" />
+
   </div>
 </template>
 
 <script>
-import config from "../../config/client.env";
+// TODO
+// import io from 'socket.io-client';
+// import gameRoom from "../lib/gameRoom";
+// import gameSocket from "../lib/gameSocket";
+// TODO END
+import { GAME_STATE } from "../lib/constants";
+import UserBoard from "./UserBoard.vue"
 import circleImg from "../assets/circle.svg";
 import crossImg from "../assets/cross.svg";
 import sallyImg from "../assets/sally.png";
@@ -26,6 +32,10 @@ import brownImg from "../assets/brown.jpg";
 
 export default {
   name: 'XsOsGame',
+
+  components: {
+    UserBoard
+  },
 
   computed: {
     _state() {
@@ -58,15 +68,16 @@ export default {
 
   methods: {
     formatUserInfo(user = {}) {
-      const { name, imgURL, userId } = user;
-      return {
-        name: !!userId ? name : "Waiting Player...",
-        imgURL,
-        userId
-      };
+      let { name, imgURL, userId } = user;
+      if (userId && !imgURL) {
+        // The user image may not exist so go for the dummy one if unavailable
+        imgURL = Date.now() % 2 ? sallyImg : brownImg;
+      }
+      return { name, imgURL, userId };
     },
 
     // Events
+
     onClickCell(e) {
       const game = this._state.game;
       const index = parseInt(e.target.dataIndex);
@@ -76,10 +87,18 @@ export default {
       }
       // TBD: Dispatch to update $store.state.game
     }
+
     // Events END
   },
 
   // Life cycle listeners
+
+  beforeMount() {
+    // TODO
+    // let store = this.$store;
+    // gameSocket.init(io);
+    // gameRoom.init({ liff, store, gameSocket });
+  },
 
   mounted() {
   }

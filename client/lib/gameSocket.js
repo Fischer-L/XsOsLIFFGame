@@ -3,29 +3,38 @@ function isObj(obj) {
 }
 
 /**
- * This socket in charge of managing the connection with the server.
+ * This gameSocket in charge of managing the connection with the server.
  * It only knows how to send/receive messages to/from the server.
  */
-const socket = {
+const gameSocket = {
   VERSION: 1,
 
   /**
    * Init the socket connection to the server.
    *
-   * @params config {Object}
-   *   @params socketIOClient {Object} The "socket.io-client" API object
-   *   @params url {String} The url to connect
-   *   @params userId {String} The LIFF userId
-   *   @params utouId {Strong} The LIFF utouId
-   *   @params listener See `subscribe`
+   * @params socketIOClient {Object} The "socket.io-client" API object
    */
-  init(config) {
-    let { socketIOClient, url, userId, utouId, listener } = config;
-    if (this._conn) {
-      console.warn("Init the socket again with url =", url);
+  init(socketIOClient) {
+    if (this._socketIOClient) {
+      console.error("Init the socket again more than once");
       return;
     }
+    this._socketIOClient = socketIOClient;
+  },
 
+  /**
+   * Start the socket connection to the server.
+   *
+   * @params url {String} The url to connect
+   * @params userId {String} The LIFF userId
+   * @params utouId {Strong} The LIFF utouId
+   * @params listener See `subscribe`
+   */
+  connect({ url, userId, utouId, listener }) {
+    if (this._conn) {
+      console.error("Connect the socket again with url =", url);
+      return;
+    }
     this._userId = userId;
     this._utouId = utouId;
     this._seq = 0;
@@ -33,7 +42,7 @@ const socket = {
     this._listeners = new Map();
     this.subscribe(listener);
 
-    this._conn = socketIOClient(url);
+    this._conn = this._socketIOClient(url);
     this._conn.on("server_msg", payload => this._notifyListeners(payload));
   },
 
@@ -95,4 +104,4 @@ const socket = {
   },
 };
 
-export default socket;
+export default gameSocket;

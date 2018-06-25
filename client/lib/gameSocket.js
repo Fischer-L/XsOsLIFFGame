@@ -7,7 +7,7 @@ function isObj(obj) {
  * It only knows how to send/receive messages to/from the server.
  */
 const gameSocket = {
-  VERSION: 1,
+  VERSION: 2,
 
   /**
    * Init the socket connection to the server.

@@ -47,8 +47,8 @@ const gameRoom = {
     });    
     this._socket.send({
       action: GAME_MSG_TYPE.JOIN,
-      displayName: self.name,
-      pictureUrl: self.imgURL,
+      name: self.name,
+      imgURL: self.imgURL,
     });
   },
 
@@ -90,13 +90,13 @@ const gameRoom = {
     let { self } = this._store.state;
     this._socket.send({
       action: GAME_MSG_TYPE.START_GAME,
-      displayName: self.name,
-      pictureUrl: self.imgURL,
+      name: self.name,
+      imgURL: self.imgURL,
     });
     this._dispatch("set_opponent_info", {
       userId: payload.from,
-      name: payload.displayName,
-      imgURL: payload.pictureUrl || "",
+      name: payload.name,
+      imgURL: payload.imgURL || "",
     });
   },
 
@@ -106,8 +106,8 @@ const gameRoom = {
 
     this._dispatch("set_opponent_info", {
       userId: payload.from,
-      name: payload.displayName,
-      imgURL: payload.pictureUrl || "",
+      name: payload.name,
+      imgURL: payload.imgURL || "",
     });
     this._dispatch("start_game", false);
     this._socket.send({ action: GAME_MSG_TYPE.START_GAME_ACK });

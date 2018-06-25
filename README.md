@@ -2,7 +2,7 @@
 
 # XsOs LIFF Game Protocol
 ## Version
-1
+2
 
 ## Overview
 
@@ -54,10 +54,10 @@ SVR then forwards that message payload to another player client by the `server_m
     action: "join",
 
     // String. The LIFF user displayname
-    displayName,
+    name,
 
     // String. Optional. The LIFF user picture if available
-    pictureUrl,
+    imgURL,
   }
   ```
 
@@ -68,10 +68,10 @@ SVR then forwards that message payload to another player client by the `server_m
     action: "start_game",
 
     // String. The LIFF user displayname
-    displayName,
+    name,
 
     // String. Optional. The LIFF user picture if available
-    pictureUrl,
+    imgURL,
   }
   ```
 

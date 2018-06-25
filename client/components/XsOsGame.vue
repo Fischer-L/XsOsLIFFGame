@@ -50,6 +50,8 @@ function fakeTmpLiff(liff) { // TMP
   return liff;
 }
 
+const DUMMY_IMG = { DUMMY_SALLY_IMG: sallyImg, DUMMY_BROWN_IMG: brownImg };
+
 export default {
   name: 'XsOsGame',
 
@@ -78,15 +80,21 @@ export default {
     },
 
     self() {
-      return this._state.self;
+      return this.formatPlayerInfo(this._state.self);
     },
 
     opponent() {
-      return this._state.opponent;
+      return this.formatPlayerInfo(this._state.opponent);
     },
   },
 
   methods: {
+
+    formatPlayerInfo(player) {
+      let info = Object.assign({}, player);
+      if (DUMMY_IMG[info.imgURL]) info.imgURL = DUMMY_IMG[info.imgURL];
+      return info;
+    },
 
     _initLIFF() {
       return new Promise(resolve => {
@@ -98,8 +106,9 @@ export default {
             utouId: data.context.utouId,
             userId: profile.userId,
             name: profile.displayName,
-            // The user image may not exist...
-            imgURL: profile.pictureUrl || (Date.now() % 2 ? sallyImg : brownImg),
+            // The user image may not exist so take a dummy as alternative.
+            // Notice here we use reserved keywords to reduce socket bandwidth (because shorter)
+            imgURL: profile.pictureUrl || (Date.now() % 2 ? "DUMMY_SALLY_IMG" : "DUMMY_BROWN_IMG"),
           };
           resolve(context);
         };

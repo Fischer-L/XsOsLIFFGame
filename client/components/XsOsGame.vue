@@ -1,7 +1,7 @@
 <template>
   <div class="gameBoard xsos-full">
     
-    <UserBoard :isSelf="false" :player="opponent" :isPlaying="_state.currentPlayer === 'opponent'" />
+    <UserBoard :isSelf="false" :player="opponent" :isPlaying="opponent.isPlaying" />
 
     <section class="gameBoard__playBoard"
              @click="onClickCell"
@@ -12,7 +12,7 @@
       </div>
     </section>
 
-    <UserBoard :isSelf="true" :player="self" :isPlaying="_state.currentPlayer === 'self'" />
+    <UserBoard :isSelf="true" :player="self" :isPlaying="self.isPlaying" />
 
   </div>
 </template>
@@ -66,32 +66,33 @@ export default {
 
     cells() {
       const game = this._state.game;
+      const winCells = this._state.gameState === GAME_STATE.OVER ? gameRoom.winCells : null;
       return game.map((move, i) => {
         const img = move === 1 ? circleImg : move === -1 ? crossImg : "";
         const style = {};
         if ([2, 5, 8].indexOf(i) >= 0) style.borderRight = "0";
         if ([6, 7, 8].indexOf(i) >= 0) style.borderBottom = "0";
+        if (winCells && winCells.indexOf(i) >= 0) style.background = "#f7d1cf";
         return {
-          img,
-          style,
-          index: i
+          img, style, index: i,
         };
       });
     },
 
     self() {
-      return this.formatPlayerInfo(this._state.self);
+      return this.formatPlayerInfo("self");
     },
 
     opponent() {
-      return this.formatPlayerInfo(this._state.opponent);
+      return this.formatPlayerInfo("opponent");
     },
   },
 
   methods: {
 
-    formatPlayerInfo(player) {
-      let info = Object.assign({}, player);
+    formatPlayerInfo(who) {
+      let info = Object.assign({}, this._state[who]);
+      info.isPlaying = this._state.currentPlayer === who && this._state.gameState === GAME_STATE.PLAYING;
       if (DUMMY_IMG[info.imgURL]) info.imgURL = DUMMY_IMG[info.imgURL];
       return info;
     },
@@ -120,12 +121,19 @@ export default {
 
     onClickCell(e) {
       let game = this._state.game;
-      let index = parseInt(e.target.dataIndex);
-      if (game[index] !== 0 || this._state.currentPlayer !== "self") {
-        console.log("TMP> Cannot click this game cell!!!");
+      let index = parseInt(e.target.getAttribute("data-index"));
+      if (game[index] !== 0 ||
+          this._state.currentPlayer !== "self" ||
+          this._state.gameState !== GAME_STATE.PLAYING
+      ) {
+        console.log("TMP> Game not yet start or not my turn or cell already occupied");
+        console.log("TMP> game[index] !== 0", index, game);
+        console.log("TMP> this._state.currentPlayer !== self", this._state.currentPlayer !== "self");
+        console.log("TMP> this._state.gameSate !== GAME_STATE.PLAYING", this._state.gameState !== GAME_STATE.PLAYING);
         return;
       }
-      // TBD: Dispatch to update $store.state.game
+      let value = this._state.isFirst ? 1 : -1;
+      gameRoom.playMove(index, value);
     }
 
     // Events END
@@ -133,7 +141,7 @@ export default {
 
   // Life cycle listeners
 
-  async beforeMount() {
+  async created() {
     let { utouId, name, imgURL, userId } = await this._initLIFF();
     let player = { name, imgURL, userId };
     let store = this.$store;
@@ -142,7 +150,7 @@ export default {
   },
 
   mounted() {
-  }
+  },
 }
 </script>
 

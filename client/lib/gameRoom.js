@@ -12,10 +12,69 @@ const gameRoom = {
     this._socket = gameSocket;
     this._gameMsgHandlers = {};
 
-    this._store.subscribe(this.onMutation.bind(this));
+    this._initStoreListeners();
     this._dispatch("set_utouId", utouId);
     this._dispatch("set_self_info", player);
     this._dispatch("set_game_state", GAME_STATE.WAITING);
+  },
+
+  async playMove(cellIdx, value) {
+    try {
+      await this._dispatch("play_a_move", { cellIdx, value });
+      this._socket.send({
+        action: "update_game",
+        game: this._store.state.game.slice()
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  get winner() {
+    this._checkWinner(this._store.state.game);
+    return this._winner || null;
+  },
+
+  get winCells() {
+    this._checkWinner(this._store.state.game);
+    return this._winCells || null;
+  },
+
+  _checkWinner(game) {
+    if (this._winner) return;
+
+    let lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    let selfWinning = -3;
+    let opponentWinning = 3;
+    if (this._store.state.isFirst) {
+      selfWinning = 3;
+      opponentWinning = -3;
+    }
+    for (let i = 0; i < lines.length; ++i) {
+      let score = lines[i].reduce((score, cellIdx) => {
+        return score + game[cellIdx];
+      }, 0);
+      if (score === selfWinning) {
+        this._winner = "self";
+      } else if (score === opponentWinning) {
+        this._winner = "opponent";
+      }
+      if (this._winner) {
+        this._winCells = lines[i];
+        break;
+      };
+    }
   },
 
   _dispatch(action, payload) { // This method is just a shorthand
@@ -44,7 +103,7 @@ const gameRoom = {
       url: config.SOCKET_URL,
       userId: self.userId,
       listener: this.onSocketMsg,
-    });    
+    });
     this._socket.send({
       action: GAME_MSG_TYPE.JOIN,
       name: self.name,
@@ -53,25 +112,60 @@ const gameRoom = {
   },
 
   _initGameplay() {
-    this._addGameMsgHandler(GAME_MSG_TYPE.UPDATE_GAME, this.onUpdateGame);
-    this._addGameMsgHandler(GAME_MSG_TYPE.GAME_OVER, this.onGameOver);
+    this._addGameMsgHandler(GAME_MSG_TYPE.UPDATE_GAME, this.onRecvUpdateGame);
+    this._addGameMsgHandler(GAME_MSG_TYPE.GAME_OVER, this.onRecvGameOver);
     console.log("TMP> _initGameplay isFirst, currentPlayer =", this._store.state.isFirst, this._store.state.currentPlayer);
   },
 
-  onMutation(mutation, state) {
-    console.log("TMP> onMutation =", mutation.type, state.gameState);
-    if (mutation.type !== "set_game_state") return;
+  _uninitGameplay() {
+    this._removeGameMsgHandler(GAME_MSG_TYPE.UPDATE_GAME);
+    this._removeGameMsgHandler(GAME_MSG_TYPE.GAME_OVER);
+  },
 
-    switch (state.gameState) {
+  _subscribeStore(type, listener) {
+    if (this._storeListeners[type]) return;
+    this._storeListeners[type] = listener;
+  },
 
-      case GAME_STATE.WAITING:
-        this._startHandshake();
-        return;
+  // Unfortunately Vuex dosen't supply `unsubscribe` to a store
+  // so we have to implement by ourselves...
+  _unsubscribeStore(type) {
+    if (!this._storeListeners[type]) return;
+    this._storeListeners[type] = undefined;
+  },
 
-      case GAME_STATE.PLAYING:
-        this._initGameplay();
-        return;
-    }
+  _initStoreListeners() {
+    if (this._storeListeners) return;
+
+    this._storeListeners = {};
+
+    this._subscribeStore("set_game_state", (mutation, state) => {
+      console.log("TMP> onMutation =", mutation.type, state.gameState);
+      switch (state.gameState) {
+        case GAME_STATE.WAITING:
+          this._startHandshake();
+          return;
+
+        case GAME_STATE.PLAYING:
+          this._initGameplay();
+          return;
+
+        case GAME_STATE.OVER:
+          this._uninitGameplay();
+          return;
+      }
+    });
+
+    this._store.subscribe((mutation, state) => {
+      let listener = this._storeListeners[mutation.type];
+      if (listener) {
+        try {
+          listener.call(this, mutation, state);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
   },
 
   onSocketMsg(payload) {
@@ -118,12 +212,39 @@ const gameRoom = {
     this._dispatch("start_game", true);
   },
 
-  onUpdateGame() {
-    // TODO
+  async onRecvUpdateGame(payload) {
+    let { game } = this._store.state;
+    let newGame = payload.game;
+    let cellIdx = -1;
+    for (let i = 0; i < 9; i++) {
+      if (game[i] !== payload.game[i]) {
+        cellIdx = i;
+        break;
+      }
+    }
+    if (cellIdx < 0) {
+      console.log("TMP> onRecvUpdateGame - nothing to update - game, newGame =", game, newGame);
+      return;
+    }
+    try {
+      let onUpdate = () => {
+        this._unsubscribeStore("update_game");
+        if (this.winner) {
+          this._dispatch("end_game");
+          // Tell our opponent that the game is over
+          this._socket.send({ action: GAME_MSG_TYPE.GAME_OVER });
+        }
+      };
+      this._subscribeStore("update_game", onUpdate);
+      await this._dispatch("receive_a_move", { cellIdx, value: newGame[cellIdx] });
+    } catch(e) {
+      this._unsubscribeStore("update_game");
+      console.error(e);
+    }
   },
 
-  onGameOver() {
-    // TODO
+  onRecvGameOver() {
+    this._dispatch("end_game");
   },
 };
 

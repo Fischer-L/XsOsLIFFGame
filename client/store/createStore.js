@@ -59,7 +59,65 @@ const actions = {
     commit("is_me_first", isFirst);
     commit("set_game_state", GAME_STATE.PLAYING);
   },
+
+  end_game({ commit }) {
+    commit("set_game_state", GAME_STATE.OVER);
+  },
+
+  play_a_move({ commit, state }, params) {
+    return new Promise((resolve, reject) => {
+      let { cellIdx, value } = params;
+      if (state.currentPlayer == "self" &&
+          isValidMove(state, cellIdx, value)
+      ) {
+        console.log("TMP> action play_a_move", params);
+        let newGame = state.game.slice();
+        newGame[cellIdx] = value;
+        commit("update_game", newGame);
+        commit("is_my_turn", false);
+        resolve();
+        return;
+      }
+      console.log("TMP> action play_a_move fail", params, state.game);
+      reject();
+    });
+  },
+
+  receive_a_move({ commit, state }, params) {
+    return new Promise((resolve, reject) => {
+      let { cellIdx, value } = params;
+      if (state.currentPlayer == "opponent" &&
+          isValidMove(state, cellIdx, value)
+      ) {
+        console.log("TMP> action receive_a_move", params);
+        let newGame = state.game.slice();
+        newGame[cellIdx] = value;
+        commit("update_game", newGame);
+        commit("is_my_turn", true);
+        resolve();
+        return;
+      }
+      console.log("TMP> action receive_a_move fail", params, state.game);
+      reject();
+    });
+  },
 };
+
+function isValidMove(state, cellIdx, value) {
+  if (cellIdx < 0 || cellIdx > 8) {
+    console.error("Play a value on an invalid cell of", cellIdx);
+    return false;
+  }
+  if (value !== 1 && value !== -1) {
+    console.error("Play an invalid value of", value);
+    return false;
+  }
+  if (state.game[cellIdx] !== 0) {
+    console.error("Play a value on a occupied cell of", cellIdx, state.game);
+    return false;
+  }
+  return true;
+}
 
 function getInitialState() {
   const state = {

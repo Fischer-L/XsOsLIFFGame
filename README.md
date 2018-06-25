@@ -149,7 +149,7 @@ SVR then forwards that message payload to another player client by the `server_m
 
 6. PB sends a "game_over" message to PA, then remove "update_game" and "game_over" message listeners
 
-7. PA receives the "game_over" message to PB, then remove "update_game" and "game_over" message listeners
+7. PA receives the "game_over" message from PB, then remove "update_game" and "game_over" message listeners
 
 8. PA calculates who wins
 

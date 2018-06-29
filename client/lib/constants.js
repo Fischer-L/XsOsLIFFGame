@@ -15,6 +15,7 @@ const GAME_MSG_TYPE = {
   START_GAME_ACK: "start_game_ack",
   UPDATE_GAME: "update_game",
   GAME_OVER: "game_over",
+  LEAVE_GAME: "leave_game",
 };
 
 export { GAME_STATE, GAME_MSG_TYPE };

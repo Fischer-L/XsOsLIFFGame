@@ -141,15 +141,13 @@ export default {
 
   // Life cycle listeners
 
-  async created() {
+  async mounted() {
     let { utouId, name, imgURL, userId } = await this._initLIFF();
     let player = { name, imgURL, userId };
     let store = this.$store;
     gameSocket.init(io);
     gameRoom.init({ utouId, player, store, gameSocket });
-  },
-
-  mounted() {
+    window.addEventListener("beforeunload", () => gameRoom.leave());
   },
 }
 </script>

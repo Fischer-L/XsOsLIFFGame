@@ -2,7 +2,7 @@
 
 # XsOs LIFF Game Protocol
 ## Version
-2
+3
 
 ## Overview
 
@@ -106,6 +106,14 @@ SVR then forwards that message payload to another player client by the `server_m
   {
     // String. Saying the game is over
     action: "game_over"
+  }
+  ```
+
+* "leave" message
+  ```js
+  {
+    // String. Saying leaving the game
+    action: "leave_game"
   }
   ```
 

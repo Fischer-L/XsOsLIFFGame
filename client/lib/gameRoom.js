@@ -30,6 +30,10 @@ const gameRoom = {
     }
   },
 
+  leave() {
+    this._dispatch("end_game");
+  },
+
   get winner() {
     this._checkWinner(this._store.state.game);
     return this._winner || null;
@@ -87,6 +91,7 @@ const gameRoom = {
   },
 
   _removeGameMsgHandler(type) {
+    if (type === "*") this._gameMsgHandlers = {};
     if (!this._gameMsgHandlers[type]) return;
     this._gameMsgHandlers[type] = undefined;
   },
@@ -94,6 +99,7 @@ const gameRoom = {
   _startHandshake() {
     this._addGameMsgHandler(GAME_MSG_TYPE.JOIN, this.onOpponentJoin);
     this._addGameMsgHandler(GAME_MSG_TYPE.START_GAME, this.onStartGameRequest);
+    this._addGameMsgHandler(GAME_MSG_TYPE.LEAVE_GAME, this.OnOpponentLeave);
     
     let { self, utouId } = this._store.state;
     // Have to save this bound function so as to remove later
@@ -103,6 +109,7 @@ const gameRoom = {
       url: config.SOCKET_URL,
       userId: self.userId,
       listener: this.onSocketMsg,
+      onClose: () => this._dispatch("end_game"),
     });
     this._socket.send({
       action: GAME_MSG_TYPE.JOIN,
@@ -120,6 +127,21 @@ const gameRoom = {
   _uninitGameplay() {
     this._removeGameMsgHandler(GAME_MSG_TYPE.UPDATE_GAME);
     this._removeGameMsgHandler(GAME_MSG_TYPE.GAME_OVER);
+  },
+
+  _disconnect() {
+    if (!this._socket) return;
+    let socket = this._socket;
+    this._socket = undefined;
+
+    socket.send({ action: GAME_MSG_TYPE.LEAVE_GAME });
+    this._removeGameMsgHandler("*");
+    // In case we close the connect before sending the message,
+    // give a buffer time then close the connection.
+    setTimeout(() => {
+      socket.close();
+      socket = undefined;
+    }, 50);
   },
 
   _subscribeStore(type, listener) {
@@ -152,6 +174,7 @@ const gameRoom = {
 
         case GAME_STATE.OVER:
           this._uninitGameplay();
+          this._disconnect();
           return;
       }
     });
@@ -230,9 +253,9 @@ const gameRoom = {
       let onUpdate = () => {
         this._unsubscribeStore("update_game");
         if (this.winner) {
-          this._dispatch("end_game");
           // Tell our opponent that the game is over
           this._socket.send({ action: GAME_MSG_TYPE.GAME_OVER });
+          this._dispatch("end_game");
         }
       };
       this._subscribeStore("update_game", onUpdate);
@@ -244,6 +267,10 @@ const gameRoom = {
   },
 
   onRecvGameOver() {
+    this._dispatch("end_game");
+  },
+
+  OnOpponentLeave() {
     this._dispatch("end_game");
   },
 };

@@ -104,7 +104,7 @@ const gameRoom = {
     let { self, utouId } = this._store.state;
     // Have to save this bound function so as to remove later
     this.onSocketMsg = this.onSocketMsg.bind(this);
-    this._socket.connect({
+    this._socket.open({
       utouId,
       url: config.SOCKET_URL,
       userId: self.userId,

@@ -10,8 +10,6 @@ const gameSocket = {
   VERSION: 3,
 
   /**
-   * Init the socket connection to the server.
-   *
    * @params socketIOClient {Object} The "socket.io-client" API object
    */
   init(socketIOClient) {
@@ -23,7 +21,7 @@ const gameSocket = {
   },
 
   /**
-   * Start the socket connection to the server.
+   * Open one socket connection to the server.
    *
    * @params url {String} The url to connect
    * @params userId {String} The LIFF userId
@@ -31,7 +29,7 @@ const gameSocket = {
    * @params onMsg {Function} Called with a payload message from the server.
    * @params onClose {Function} Called when the connection closed by the server.
    */
-  connect({ url, userId, utouId, onClose, onMsg }) {
+  open({ url, userId, utouId, onClose, onMsg }) {
     if (this._conn) {
       console.error("Connect the socket again with url =", url);
       return;

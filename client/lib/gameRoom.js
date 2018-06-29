@@ -108,7 +108,7 @@ const gameRoom = {
       utouId,
       url: config.SOCKET_URL,
       userId: self.userId,
-      listener: this.onSocketMsg,
+      onMsg: this.onSocketMsg,
       onClose: () => this._dispatch("end_game"),
     });
     this._socket.send({

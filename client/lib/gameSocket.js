@@ -28,10 +28,10 @@ const gameSocket = {
    * @params url {String} The url to connect
    * @params userId {String} The LIFF userId
    * @params utouId {Strong} The LIFF utouId
-   * @params onClose {Function} A special event, called when the connection closed.
-   * @params listener See `subscribe`
+   * @params onMsg {Function} Called with a payload message from the server.
+   * @params onClose {Function} Called when the connection closed by the server.
    */
-  connect({ url, userId, utouId, onClose, listener }) {
+  connect({ url, userId, utouId, onClose, onMsg }) {
     if (this._conn) {
       console.error("Connect the socket again with url =", url);
       return;
@@ -40,13 +40,12 @@ const gameSocket = {
     this._utouId = utouId;
     this._seq = 0;
 
+    this.onMsg = onMsg;
     this.onClose = onClose;
-    this._listeners = new Map();
-    this.subscribe(listener);
 
     this._conn = this._socketIOClient(url);
-    this._conn.on("disconnect", () => this.onClose && this.onClose());
-    this._conn.on("server_msg", payload => this._notifyListeners(payload));
+    this._conn.on("disconnect", () => this.onClose());
+    this._conn.on("server_msg", payload => requestAnimationFrame(() => this.onMsg(payload)));
   },
 
   close() {
@@ -54,39 +53,6 @@ const gameSocket = {
       this._conn.close();
       this._conn = undefined;
     }
-  },
-
-  /**
-   * Subscribe to messages from the server
-   *
-   * @params listener {Function} Will be invoked with a payload object from the server.
-   */
-  subscribe(listener) {
-    if (typeof listener == "function" && !this._listeners.has(listener)) {
-      this._listeners.set(listener, listener);
-    }
-  },
-
-  unsubscribe(listener) {
-    if (this._listeners.has(listener)) {
-      this._listeners.delete(listener);
-    }
-  },
-
-  _notifyListeners(payload) {
-    if (!isObj(payload)) {
-      console.error("Notify socket listeners with invalid payload =", payload);
-      return;
-    }
-    this._listeners.forEach(listener => {
-      requestAnimationFrame(() => {
-        try {
-          listener(payload);
-        } catch (e) {
-          console.error(e);
-        }
-      });
-    });
   },
 
   /**

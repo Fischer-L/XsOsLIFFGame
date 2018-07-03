@@ -1,6 +1,9 @@
 import config from "../../config/client.env";
 import { GAME_STATE, GAME_MSG_TYPE } from "./constants";
 
+/**
+ * This gameRoom in charge of managing the progress and the state-dispatching of the game
+ */
 const gameRoom = {
   init({ utouId, player, store, gameSocket }) {
     if (this._socket) {

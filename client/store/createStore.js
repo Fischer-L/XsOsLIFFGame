@@ -38,8 +38,8 @@ const mutations = {
 };
 
 const actions = {
-  set_game_state({ commit }, state) {
-    commit("set_game_state", state);
+  set_game_state({ commit, state }, value) {
+    commitGameState({ commit, state }, value);
   },
 
   set_utouId({ commit }, utouId) {
@@ -54,14 +54,14 @@ const actions = {
     commit("set_opponent_info", info);
   },
 
-  start_game({ commit }, isFirst) {
+  start_game({ commit, state }, isFirst) {
     commit("is_my_turn", isFirst);
     commit("is_me_first", isFirst);
-    commit("set_game_state", GAME_STATE.PLAYING);
+    commitGameState({ commit, state }, GAME_STATE.PLAYING);
   },
 
-  end_game({ commit }) {
-    commit("set_game_state", GAME_STATE.OVER);
+  end_game({ commit, state }) {
+    commitGameState({ commit, state }, GAME_STATE.OVER);
   },
 
   play_a_move({ commit, state }, params) {
@@ -102,6 +102,11 @@ const actions = {
     });
   },
 };
+
+function commitGameState({ commit, state }, value) {
+  if (state.gameState === value) return;
+  commit("set_game_state", value);
+}
 
 function isValidMove(state, cellIdx, value) {
   if (cellIdx < 0 || cellIdx > 8) {

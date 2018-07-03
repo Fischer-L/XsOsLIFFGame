@@ -4,7 +4,6 @@ function isObj(obj) {
 
 /**
  * This gameSocket in charge of managing the connection with the server.
- * It only knows how to send/receive messages to/from the server.
  */
 const gameSocket = {
   VERSION: 3,

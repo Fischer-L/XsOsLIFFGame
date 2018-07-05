@@ -37,18 +37,30 @@ const gameRoom = {
     this._dispatch("end_game");
   },
 
+  /**
+   * @return {String|null}
+   *    "self" or "opponent".
+   *    `null` if no winner (game is even).
+   *    `undefined` if game is not yet over
+   */
   get winner() {
     this._checkWinner(this._store.state.game);
-    return this._winner || null;
+    return this._winner;
   },
 
+  /**
+   * @return {Array<Integer>|null}
+   *    `[0,1,2]` if the cell 0, 1, 2 connect one line.
+   *    `null` if no line (game is even).
+   *    `undefined` if game is not yet over
+   */
   get winCells() {
     this._checkWinner(this._store.state.game);
-    return this._winCells || null;
+    return this._winCells;
   },
 
   _checkWinner(game) {
-    if (this._winner) return;
+    if (this._winner !== undefined) return;
 
     let lines = [
       [0, 1, 2],
@@ -81,6 +93,11 @@ const gameRoom = {
         this._winCells = lines[i];
         break;
       };
+    }
+    if (this._winner === undefined) {
+      if (game.find(cell => cell === 0) === undefined) {
+        this._winner = this._winCells = null;
+      }
     }
   },
 
@@ -255,7 +272,7 @@ const gameRoom = {
     try {
       let onUpdate = () => {
         this._unsubscribeStore("update_game");
-        if (this.winner) {
+        if (this.winner !== undefined) {
           // Tell our opponent that the game is over
           this._socket.send({ action: GAME_MSG_TYPE.GAME_OVER });
           this._dispatch("end_game");

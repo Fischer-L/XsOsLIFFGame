@@ -47,10 +47,19 @@ function fakeTmpLiff(liff) { // TMP
     });
   };
 
+  liff.sendMessages = (payload) => console.log("TMP> liff.sendMessages =", payload);
+
   return liff;
 }
 
 const DUMMY_IMG = { DUMMY_SALLY_IMG: sallyImg, DUMMY_BROWN_IMG: brownImg };
+
+const WIN_MSGS = [
+  "Just lucky to win",
+  "That was easy~",
+  "I can beat you 100 times~",
+  "Good game, thank you"
+];
 
 export default {
   name: 'XsOsGame',
@@ -148,6 +157,17 @@ export default {
     gameSocket.init(io);
     gameRoom.init({ utouId, player, store, gameSocket });
     window.addEventListener("beforeunload", () => gameRoom.leave());
+  },
+
+  updated() {
+    if (this._state.gameState === GAME_STATE.OVER && gameRoom.winner === "self") {
+      liff.sendMessages([
+        {
+          type:'text',
+          text: WIN_MSGS[ Date.now() % WIN_MSGS.length ]
+        }
+      ]);
+    }
   },
 }
 </script>

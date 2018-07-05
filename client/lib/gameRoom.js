@@ -94,10 +94,12 @@ const gameRoom = {
         break;
       };
     }
-    if (this._winner === undefined) {
-      if (game.find(cell => cell === 0) === undefined) {
-        this._winner = this._winCells = null;
-      }
+    if (this._winner === undefined &&
+        game.find(cell => cell === 0) === undefined
+    ) {
+      // No cell is empty and find no winner above either
+      // so no one wins.
+      this._winner = this._winCells = null;
     }
   },
 
@@ -119,16 +121,14 @@ const gameRoom = {
   _startHandshake() {
     this._addGameMsgHandler(GAME_MSG_TYPE.JOIN, this.onOpponentJoin);
     this._addGameMsgHandler(GAME_MSG_TYPE.START_GAME, this.onStartGameRequest);
-    this._addGameMsgHandler(GAME_MSG_TYPE.LEAVE_GAME, this.OnOpponentLeave);
+    this._addGameMsgHandler(GAME_MSG_TYPE.LEAVE_GAME, this.onOpponentLeave);
     
     let { self, utouId } = this._store.state;
-    // Have to save this bound function so as to remove later
-    this.onSocketMsg = this.onSocketMsg.bind(this);
     this._socket.open({
       utouId,
       url: config.SOCKET_URL,
       userId: self.userId,
-      onMsg: this.onSocketMsg,
+      onMsg: this.onSocketMsg.bind(this),
       onClose: () => this._dispatch("end_game"),
     });
     this._socket.send({
@@ -154,14 +154,13 @@ const gameRoom = {
     let socket = this._socket;
     this._socket = undefined;
 
-    socket.send({ action: GAME_MSG_TYPE.LEAVE_GAME });
     this._removeGameMsgHandler("*");
+    socket.send({ action: GAME_MSG_TYPE.LEAVE_GAME });
     // In case we close the connect before sending the message,
     // give a buffer time then close the connection.
-    setTimeout(() => {
-      socket.close();
-      socket = undefined;
-    }, 50);
+    // TODO: Should we upgrade the protocol to do the *close* after receiving 
+    // an ack of LEAVE_GAME!? For now, just do this simple timeout first.
+    setTimeout(() => socket.close(), 50);
   },
 
   _subscribeStore(type, listener) {
@@ -169,7 +168,7 @@ const gameRoom = {
     this._storeListeners[type] = listener;
   },
 
-  // Unfortunately Vuex dosen't supply `unsubscribe` to a store
+  // Unfortunately Vuex dosen't support `unsubscribe` to a store
   // so we have to implement by ourselves...
   _unsubscribeStore(type) {
     if (!this._storeListeners[type]) return;
@@ -290,7 +289,7 @@ const gameRoom = {
     this._dispatch("end_game");
   },
 
-  OnOpponentLeave() {
+  onOpponentLeave() {
     this._dispatch("end_game");
   },
 };

@@ -59,6 +59,7 @@ const gameSocket = {
    * @return {Object} an new formatted payload
    */
   formatPayload(payload) {
+    if (!isObj(payload)) return null;
     return Object.assign({}, payload, {
       seq: this._seq++,
       from: this._userId,

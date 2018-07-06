@@ -74,7 +74,7 @@ const gameSocket = {
       console.error("Send a socket message with invalid payload =", payload);
       return;
     }
-    console.log("TMP> send client_msg =", formatted);
+    console.log("gameSocket> send client_msg =", formatted);
     this._conn.emit("client_msg", formatted);
   },
 };

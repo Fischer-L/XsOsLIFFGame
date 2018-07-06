@@ -70,7 +70,6 @@ const actions = {
       if (state.currentPlayer == "self" &&
           isValidMove(state, cellIdx, value)
       ) {
-        console.log("TMP> action play_a_move", params);
         let newGame = state.game.slice();
         newGame[cellIdx] = value;
         commit("update_game", newGame);
@@ -78,7 +77,6 @@ const actions = {
         resolve();
         return;
       }
-      console.log("TMP> action play_a_move fail", params, state.game);
       reject();
     });
   },
@@ -89,7 +87,6 @@ const actions = {
       if (state.currentPlayer == "opponent" &&
           isValidMove(state, cellIdx, value)
       ) {
-        console.log("TMP> action receive_a_move", params);
         let newGame = state.game.slice();
         newGame[cellIdx] = value;
         commit("update_game", newGame);
@@ -97,7 +94,6 @@ const actions = {
         resolve();
         return;
       }
-      console.log("TMP> action receive_a_move fail", params, state.game);
       reject();
     });
   },

@@ -141,7 +141,6 @@ const gameRoom = {
   _initGameplay() {
     this._addGameMsgHandler(GAME_MSG_TYPE.UPDATE_GAME, this.onRecvUpdateGame);
     this._addGameMsgHandler(GAME_MSG_TYPE.GAME_OVER, this.onRecvGameOver);
-    console.log("TMP> _initGameplay isFirst, currentPlayer =", this._store.state.isFirst, this._store.state.currentPlayer);
   },
 
   _uninitGameplay() {
@@ -181,7 +180,6 @@ const gameRoom = {
     this._storeListeners = {};
 
     this._subscribeStore("set_game_state", (mutation, state) => {
-      console.log("TMP> onMutation =", mutation.type, state.gameState);
       switch (state.gameState) {
         case GAME_STATE.WAITING:
           this._startHandshake();
@@ -211,7 +209,7 @@ const gameRoom = {
   },
 
   onSocketMsg(payload) {
-    console.log("TMP> onSocketMsg =", payload);
+    console.log("gameRoom> onSocketMsg =", payload);
     let handler = this._gameMsgHandlers[payload.action];
     if (handler) {
       requestAnimationFrame(() => handler.call(this, payload));
@@ -265,7 +263,6 @@ const gameRoom = {
       }
     }
     if (cellIdx < 0) {
-      console.log("TMP> onRecvUpdateGame - nothing to update - game, newGame =", game, newGame);
       return;
     }
     try {

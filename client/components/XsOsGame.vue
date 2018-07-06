@@ -29,7 +29,7 @@ import sallyImg from "../assets/sally.png";
 import brownImg from "../assets/brown.jpg";
 
 import config from "../../config/client.env";
-function fakeTmpLiff(liff) { // TMP
+function fakeLiffOnLocal(liff) { // All this is for the local test...
   if (!config.LOCAL_DEV) return liff;
 
   liff.init = onOK => {
@@ -47,7 +47,7 @@ function fakeTmpLiff(liff) { // TMP
     });
   };
 
-  liff.sendMessages = (payload) => console.log("TMP> liff.sendMessages =", payload);
+  liff.sendMessages = (payload) => console.log("liff.sendMessages =", payload);
 
   return liff;
 }
@@ -107,9 +107,8 @@ export default {
     },
 
     _initLIFF() {
-      return new Promise(resolve => {
-        console.log("TMP> _initLIFF");
-        liff = fakeTmpLiff(liff);
+      return new Promise(resolve => {;
+        liff = fakeLiffOnLocal(liff);
         let onOK = async (data) => {
           let profile = await liff.getProfile();
           let context = {
@@ -135,10 +134,6 @@ export default {
           this._state.currentPlayer !== "self" ||
           this._state.gameState !== GAME_STATE.PLAYING
       ) {
-        console.log("TMP> Game not yet start or not my turn or cell already occupied");
-        console.log("TMP> game[index] !== 0", index, game);
-        console.log("TMP> this._state.currentPlayer !== self", this._state.currentPlayer !== "self");
-        console.log("TMP> this._state.gameSate !== GAME_STATE.PLAYING", this._state.gameState !== GAME_STATE.PLAYING);
         return;
       }
       let value = this._state.isFirst ? 1 : -1;

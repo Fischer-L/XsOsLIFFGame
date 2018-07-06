@@ -13,7 +13,7 @@ const gameSocket = {
    */
   init(socketIOClient) {
     if (this._socketIOClient) {
-      console.error("Init the socket again more than once");
+      console.error("gameSocket> Init the socket again more than once");
       return;
     }
     this._socketIOClient = socketIOClient;
@@ -30,7 +30,7 @@ const gameSocket = {
    */
   open({ url, userId, utouId, onClose, onMsg }) {
     if (this._conn) {
-      console.error("Connect the socket again with url =", url);
+      console.error("gameSocket> Connect the socket again with url =", url);
       return;
     }
     this._userId = userId;
@@ -71,7 +71,7 @@ const gameSocket = {
   send(payload) {
     let formatted = this.formatPayload(payload);
     if (!formatted) {
-      console.error("Send a socket message with invalid payload =", payload);
+      console.error("gameSocket> Send a socket message with invalid payload =", payload);
       return;
     }
     console.log("gameSocket> send client_msg =", formatted);

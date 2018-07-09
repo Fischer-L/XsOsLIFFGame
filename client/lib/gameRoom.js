@@ -120,8 +120,8 @@ const gameRoom = {
 
   _startHandshake() {
     this._addGameMsgHandler(GAME_MSG_TYPE.JOIN, this.onOpponentJoin);
-    this._addGameMsgHandler(GAME_MSG_TYPE.START_GAME, this.onStartGameRequest);
     this._addGameMsgHandler(GAME_MSG_TYPE.LEAVE_GAME, this.onOpponentLeave);
+    this._addGameMsgHandler(GAME_MSG_TYPE.START_GAME, this.onStartGameRequest);
     
     let { self, utouId } = this._store.state;
     this._socket.open({
@@ -143,13 +143,8 @@ const gameRoom = {
     this._addGameMsgHandler(GAME_MSG_TYPE.GAME_OVER, this.onRecvGameOver);
   },
 
-  _uninitGameplay() {
-    this._removeGameMsgHandler(GAME_MSG_TYPE.UPDATE_GAME);
-    this._removeGameMsgHandler(GAME_MSG_TYPE.GAME_OVER);
-  },
-
   _disconnect() {
-    if (!this._socket) return;
+    if (!this._socket || !this._socket.connected) return;
     let socket = this._socket;
     this._socket = undefined;
 
@@ -190,7 +185,6 @@ const gameRoom = {
           return;
 
         case GAME_STATE.OVER:
-          this._uninitGameplay();
           this._disconnect();
           return;
       }

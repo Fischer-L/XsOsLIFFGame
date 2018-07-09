@@ -41,7 +41,11 @@ const gameSocket = {
     this.onClose = onClose;
 
     this._conn = this._socketIOClient(url);
-    this._conn.on("disconnect", () => this.onClose());
+    this._conn.on("connect", () => this.connected = true);
+    this._conn.on("disconnect", () => {
+      this.connected = false;
+      this.onClose();
+    });
     this._conn.on("server_msg", payload => requestAnimationFrame(() => this.onMsg(payload)));
   },
 
@@ -49,6 +53,7 @@ const gameSocket = {
     if (this._conn) {
       this._conn.close();
       this._conn = undefined;
+      this.connected = false;
     }
   },
 

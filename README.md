@@ -140,9 +140,6 @@ SVR then forwards that message payload to another player client by the `server_m
 
 11. The game starts. The handshake done.
 
-#### Known Issues
-* What if 2 palyers send and receive the "join" message at the same time? Right now, this version dosen't handle this the case.
-
 
 ## Gameplay
 1. PA and PB listen to "update_game" and "game_over" messages
@@ -172,5 +169,12 @@ SVR then forwards that message payload to another player client by the `server_m
 
 2. PB receives the "leave" message from PA, then disconnect the connnection
 
-#### Known Issues
+
+## Known Issues
+* What if 2 palyers send and receive the "join" message at the same time? Right now, this version dosen't handle this the case.
+
+* Did not handle the case of more than 2 players joining at the same time.
+
+* Did not handle the temp internet break situation
+
 * Should we add an ack of the "leave" message so that clients can disconnect after making sure the "leave" message is delivered.

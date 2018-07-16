@@ -15,7 +15,7 @@ const gameRoom = {
     this._socket = gameSocket;
     this._gameMsgHandlers = {};
 
-    this._initStoreListeners();
+    this._store.subscribe(this.onStateChange.bind(this));
     this._dispatch("set_utouId", utouId);
     this._dispatch("set_self_info", player);
     this._dispatch("set_game_state", GAME_STATE.WAITING);
@@ -104,7 +104,7 @@ const gameRoom = {
   },
 
   _dispatch(action, payload) { // This method is just a shorthand
-    this._store.dispatch(action, payload);
+    return this._store.dispatch(action, payload);
   },
 
   _addGameMsgHandler(type, handler) {
@@ -157,49 +157,21 @@ const gameRoom = {
     setTimeout(() => socket.close(), 50);
   },
 
-  _subscribeStore(type, listener) {
-    if (this._storeListeners[type]) return;
-    this._storeListeners[type] = listener;
-  },
+  onStateChange(mutation, state) {
+    if (mutation.type !== "set_game_state") return;
+    switch (state.gameState) {
+      case GAME_STATE.WAITING:
+        this._startHandshake();
+        return;
 
-  // Unfortunately Vuex dosen't support `unsubscribe` to a store
-  // so we have to implement by ourselves...
-  _unsubscribeStore(type) {
-    if (!this._storeListeners[type]) return;
-    this._storeListeners[type] = undefined;
-  },
+      case GAME_STATE.PLAYING:
+        this._initGameplay();
+        return;
 
-  _initStoreListeners() {
-    if (this._storeListeners) return;
-
-    this._storeListeners = {};
-
-    this._subscribeStore("set_game_state", (mutation, state) => {
-      switch (state.gameState) {
-        case GAME_STATE.WAITING:
-          this._startHandshake();
-          return;
-
-        case GAME_STATE.PLAYING:
-          this._initGameplay();
-          return;
-
-        case GAME_STATE.OVER:
-          this._disconnect();
-          return;
-      }
-    });
-
-    this._store.subscribe((mutation, state) => {
-      let listener = this._storeListeners[mutation.type];
-      if (listener) {
-        try {
-          listener.call(this, mutation, state);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    });
+      case GAME_STATE.OVER:
+        this._disconnect();
+        return;
+    }
   },
 
   onSocketMsg(payload) {
@@ -260,18 +232,13 @@ const gameRoom = {
       return;
     }
     try {
-      let onUpdate = () => {
-        this._unsubscribeStore("update_game");
-        if (this.winner !== undefined) {
-          // Tell our opponent that the game is over
-          this._socket.send({ action: GAME_MSG_TYPE.GAME_OVER });
-          this._dispatch("end_game");
-        }
-      };
-      this._subscribeStore("update_game", onUpdate);
       await this._dispatch("receive_a_move", { cellIdx, value: newGame[cellIdx] });
+      if (this.winner !== undefined) {
+        // Tell our opponent that the game is over
+        this._socket.send({ action: GAME_MSG_TYPE.GAME_OVER });
+        this._dispatch("end_game");
+      }
     } catch(e) {
-      this._unsubscribeStore("update_game");
       console.error(e);
     }
   },
